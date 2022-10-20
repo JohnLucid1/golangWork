@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	tgtoken string = "5377865319:AAEDPdsovIwwheNAL_lgE-sDNvHsO_VviwU"
-	apiUrl  string = "https://api.telegram.org/bot" + tgtoken
+	apiUrl  string = "https://api.telegram.org/bot" + structures.Tocken
 )
 
 
