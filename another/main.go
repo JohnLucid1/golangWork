@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"strconv"
-	"time"
 )
 
 const (
@@ -65,7 +64,7 @@ func UpdateLoop() {
 	lastId := 0
 	for {
 		lastId = Update(lastId)
-		time.Sleep(3 * time.Second)
+		// time.Sleep(0 * time.Second)
 	}
 }
 
