@@ -84,7 +84,7 @@ func Update(lastId int) int {
 
 	if len(v.Result) > 0 {
 		ev := v.Result[len(v.Result)-1]
-		txt := ev.Message.Text 
+		txt := ev.Message.Text
 
 		if txt == "/privet" {
 			txtmsg := structures.SendMessage{
@@ -122,7 +122,7 @@ func Update(lastId int) int {
 
 		}
 
-		if strings.Contains(txt, "/ChangeName"){
+		if strings.Contains(txt, "/ChangeName") {
 
 			if len(strings.Split(txt, " ")) > 1 {
 
@@ -144,9 +144,24 @@ func Update(lastId int) int {
 				} else {
 					return ev.Id + 1
 				}
+			} else {
+				txtmsg := structures.SendMessage{
+					ChId:                ev.Message.Chat.Id,
+					Text:                "Нормально имя введи дурак",
+					Reply_To_Message_Id: ev.Message.Id,
+				}
+
+				bytemsg, _ := json.Marshal(txtmsg)
+				_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+				if err != nil {
+					fmt.Println(err)
+					return lastId
+				} else {
+					return ev.Id + 1
+				}
 			}
 
-		}		
+		}
 
 		if txt == "/easter_egg" {
 			txtmsg := structures.SendMessage{
