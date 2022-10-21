@@ -4,23 +4,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/another/trying/structures"
-	"github.com/gorilla/mux"
 	"io"
 	"net/http"
+	"strings"
+
+	"github.com/another/trying/structures"
+	"github.com/gorilla/mux"
+
 	"strconv"
-	// "strings"
 	"time"
 )
 
-const ( 
-	apiUrl   string = "https://api.telegram.org/bot" + structures.Tocken // Подвинул токен в конфиг
+const (
+	apiUrl string = "https://api.telegram.org/bot" + structures.Tocken // Подвинул токен в конфиг
 )
 
 // Изменяемые штуки (надо)
 var (
 	Bot_Name string = "Prikol"
-
 )
 
 func main() {
@@ -64,7 +65,7 @@ func UpdateLoop() {
 	lastId := 0
 	for {
 		lastId = Update(lastId)
-		time.Sleep(1 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -83,11 +84,12 @@ func Update(lastId int) int {
 
 	if len(v.Result) > 0 {
 		ev := v.Result[len(v.Result)-1]
-		txt := ev.Message.Text
+		txt := ev.Message.Text 
+
 		if txt == "/privet" {
 			txtmsg := structures.SendMessage{
 				ChId:                ev.Message.Chat.Id,
-				Text:                "ИДИ ОТ СЮДА, ЧИТАЙ ОПИСАНИЕ!", 
+				Text:                "ИДИ ОТ СЮДА, ЧИТАЙ ОПИСАНИЕ!",
 				Reply_To_Message_Id: ev.Message.Id,
 			}
 
@@ -101,9 +103,8 @@ func Update(lastId int) int {
 			}
 		}
 
+		if txt == "/SayMyName" {
 
-		if txt == "/SayMyName"{ 
-			
 			txtmsg := structures.SendMessage{
 				ChId:                ev.Message.Chat.Id,
 				Text:                Bot_Name,
@@ -121,45 +122,31 @@ func Update(lastId int) int {
 
 		}
 
-		if txt == "/ChangeName"{ 
-			txtmsg := structures.SendMessage{
-				ChId:                ev.Message.Chat.Id,
-				Text:                "Change bots name",
-				Reply_To_Message_Id: ev.Message.Id,
+		if strings.Contains(txt, "/ChangeName"){
+
+			if len(strings.Split(txt, " ")) > 1 {
+
+				newName := strings.Split(txt, " ")[1]
+
+				Bot_Name = newName
+
+				txtmsg := structures.SendMessage{
+					ChId:                ev.Message.Chat.Id,
+					Text:                "New Bot Name is set to: " + Bot_Name,
+					Reply_To_Message_Id: ev.Message.Id,
+				}
+
+				bytemsg, _ := json.Marshal(txtmsg)
+				_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+				if err != nil {
+					fmt.Println(err)
+					return lastId
+				} else {
+					return ev.Id + 1
+				}
 			}
 
-			bytemsg, _ := json.Marshal(txtmsg)
-			_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-			if err != nil {
-				fmt.Println(err)
-				return lastId
-			} 
-
-
-
-			// if newName := ev.Message.Text; len(ev.Message.Text) > 0 {
-			// 	Bot_Name = newName
-			// }
-			
-			newName := ev.Message.Text 
-			Bot_Name = newName
-
-			txtmsg = structures.SendMessage{
-				ChId:                ev.Message.Chat.Id,
-				Text:                "Name Changed to " + Bot_Name,
-				Reply_To_Message_Id: ev.Message.Id,
-			}
-
-			bytemsg, _ = json.Marshal(txtmsg)
-			_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-			if err != nil {
-				fmt.Println(err)
-				return lastId
-			} else {
-				return ev.Id + 1
-			}
-		}
-
+		}		
 
 		if txt == "/easter_egg" {
 			txtmsg := structures.SendMessage{
@@ -177,49 +164,6 @@ func Update(lastId int) int {
 				return ev.Id + 1
 			}
 		}
-		// txt1 := ev.Message.Text
-
-		// if strings.Contains(txt1, Bot_Name) {
-
-		// 	// if strings.Contains(txt1, "Расскажи анекдот") {
-		// 	// }
-
-		// 	txtmsg := structures.SendMessage{
-		// 		ChId:                ev.Message.Chat.Id,
-		// 		Text:                "Пьяный пьяный ежик влез на провода, током пиз**нуло пьного ежа.",
-		// 		Reply_To_Message_Id: ev.Message.Id,
-		// 	}
-
-		// 	bytemsg, _ := json.Marshal(txtmsg)
-		// 	_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-		// 	if err != nil {
-		// 		fmt.Println(err)
-		// 		return lastId
-		// 	} else {
-		// 		return ev.Id + 1
-		// 	}
-		// }
-
-		// if strings.Contains(txt2, Bot_Name) {
-
-		// 	// if strings.Contains(txt2, "кто ты?") {
-		// 	// }
-
-		// 	txtmsg := structures.SendMessage{
-		// 		ChId:                ev.Message.Chat.Id,
-		// 		Text:                "Зовут Олежа, немного о себе. Парень сипотяга, по жизни бродяга, походка городская, жизнь воровскааая",
-		// 		Reply_To_Message_Id: ev.Message.Id,
-		// 	}
-
-		// 	bytemsg, _ := json.Marshal(txtmsg)
-		// 	_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-		// 	if err != nil {
-		// 		fmt.Println(err)
-		// 		return lastId
-		// 	} else {
-		// 		return ev.Id + 1
-		// 	}
-		// }
 	}
 
 	return lastId
