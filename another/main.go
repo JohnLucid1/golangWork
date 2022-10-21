@@ -4,21 +4,21 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/another/trying/structures"
 	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/another/trying/structures"
 )
 
 const (
-	apiUrl  string = "https://api.telegram.org/bot" + structures.Tocken
+	apiUrl   string = "https://api.telegram.org/bot" + structures.Tocken
+	Bot_Name string = "Олежа"
 )
 
-
-func main(){
+func main() {
 	go UpdateLoop()
 	router := mux.NewRouter()
 	router.HandleFunc("/", IndexHandler)
@@ -26,7 +26,6 @@ func main(){
 }
 
 func IndexHandler(w http.ResponseWriter, _ *http.Request) {
-	// var R MainStru
 	var R structures.MainStru
 
 	resp, err := http.Get(apiUrl + "/getMe")
@@ -112,7 +111,6 @@ func Update(lastId int) int {
 				return ev.Id + 1
 			}
 		}
-		var Bot_Name = "Олежа"
 		txt1 := ev.Message.Text
 
 		if strings.Contains(txt1, Bot_Name) {
