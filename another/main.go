@@ -7,10 +7,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
+
+	"math/rand"
 
 	"github.com/another/trying/structures"
 	"github.com/gorilla/mux"
-	"math/rand"
 
 	"strconv"
 )
@@ -63,6 +65,7 @@ func UpdateLoop() {
 	lastId := 0
 	for {
 		lastId = Update(lastId)
+		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -96,8 +99,9 @@ func Update(lastId int) int {
 
 			case "change name to":
 				{
-					if strings.Contains(txt, ": ") {
-						return ChangeName(lastId, ev, txt)
+					if strings.Contains(txt, ":") {
+						return ChangeName(lastId, ev, txt, &Bot_Name)
+
 					} else {
 						return SomeMessage(lastId, ev, "Wrong")
 					}
@@ -105,6 +109,10 @@ func Update(lastId int) int {
 			case "privet":
 				{
 					return SomeMessage(lastId, ev, "Hey loser")
+				}
+			case "name":
+				{
+					return SayMyName(lastId, ev)
 				}
 			}
 		}
@@ -114,6 +122,7 @@ func Update(lastId int) int {
 }
 
 func Anek(lastID int, ev structures.UpdateStruct) int {
+	fmt.Println("works")
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
 		Text: "https://www.youtube.com/watch?v=tvkxupwbFLk&ab_channel=Corpax",
@@ -130,6 +139,7 @@ func Anek(lastID int, ev structures.UpdateStruct) int {
 }
 
 func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
+	fmt.Println("works")
 	retotal := strings.Split(txt, "до ")[1]
 	s, err := strconv.Atoi(retotal)
 	if err != nil {
@@ -153,12 +163,14 @@ func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
 	}
 }
 
-func ChangeName(lastId int, ev structures.UpdateStruct, txt string) int {
-	newap := strings.Split(txt, "change name to: ")
-	Bot_Name = newap[1]
+func ChangeName(lastId int, ev structures.UpdateStruct, txt string, Bot_Name *string) int {
+	fmt.Println("works")
+	newap := strings.Split(txt, "change name to:")
+	*Bot_Name = newap[1]
+
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
-		Text: "Обращение изменено на: " + Bot_Name,
+		Text: "Обращение изменено на: " + *Bot_Name,
 	}
 
 	bytemsg, _ := json.Marshal(txtmsg)
@@ -170,6 +182,7 @@ func ChangeName(lastId int, ev structures.UpdateStruct, txt string) int {
 	} else {
 		return ev.Id + 1
 	}
+
 }
 
 func SomeMessage(lastId int, ev structures.UpdateStruct, txt string) int {
@@ -187,4 +200,23 @@ func SomeMessage(lastId int, ev structures.UpdateStruct, txt string) int {
 	} else {
 		return ev.Id + 1
 	}
+}
+
+func SayMyName(lastId int, ev structures.UpdateStruct) int {
+	fmt.Println("works")
+	txtmsg := structures.SendMessage{
+		ChId: ev.Message.Chat.Id,
+		Text: Bot_Name,
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err := http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+
+	if err != nil {
+		fmt.Println(err)
+		return lastId
+	} else {
+		return ev.Id + 1
+	}
+
 }
