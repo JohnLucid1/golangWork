@@ -10,6 +10,7 @@ import (
 
 	"github.com/another/trying/structures"
 	"github.com/gorilla/mux"
+	"math/rand"
 
 	"strconv"
 )
@@ -55,7 +56,6 @@ func IndexHandler(w http.ResponseWriter, _ *http.Request) {
 
 	w.Write([]byte(respReady))
 
-
 	w.Write([]byte("Вывод успешно произведён!"))
 }
 
@@ -83,83 +83,104 @@ func Update(lastId int) int {
 		ev := v.Result[len(v.Result)-1]
 		txt := ev.Message.Text
 
-		if txt == "/privet" {
-			txtmsg := structures.SendMessage{
-				ChId:                ev.Message.Chat.Id,
-				Text:                "Hello",
-				Reply_To_Message_Id: ev.Message.Id,
-			}
-
-			bytemsg, _ := json.Marshal(txtmsg)
-			_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-			if err != nil {
-				fmt.Println(err)
-				return lastId
-			} else {
-				return ev.Id + 1
-			}
-		}
-
-		if txt == "/SayMyName" {
-
-			txtmsg := structures.SendMessage{
-				ChId:                ev.Message.Chat.Id,
-				Text:                Bot_Name,
-				Reply_To_Message_Id: ev.Message.Id,
-			}
-
-			bytemsg, _ := json.Marshal(txtmsg)
-			_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-			if err != nil {
-				fmt.Println(err)
-				return lastId
-			} else {
-				return ev.Id + 1
-			}
-
-		}
-
-		if strings.Contains(txt, "/ChangeName") {
-
-			if len(strings.Split(txt, " ")) > 1 {
-
-				newName := strings.Split(txt, " ")[1]
-
-				Bot_Name = newName
-
-				txtmsg := structures.SendMessage{
-					ChId:                ev.Message.Chat.Id,
-					Text:                "New Bot Name is set to: " + Bot_Name,
-					Reply_To_Message_Id: ev.Message.Id,
+		if strings.Split(txt, ", ")[0] == Bot_Name {
+			switch strings.Split(strings.Split(txt, ", ")[1], ": ")[0] {
+			case "anekdot":
+				{
+					return Anek(lastId, ev)
+				}
+			case "random number":
+				{
+					return RandGen(lastId, ev, txt)
 				}
 
-				bytemsg, _ := json.Marshal(txtmsg)
-				_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-				if err != nil {
-					fmt.Println(err)
-					return lastId
-				} else {
-					return ev.Id + 1
-				}
-			} else {
-				txtmsg := structures.SendMessage{
-					ChId:                ev.Message.Chat.Id,
-					Text:                "Нормально имя введи дурак",
-					Reply_To_Message_Id: ev.Message.Id,
-				}
-
-				bytemsg, _ := json.Marshal(txtmsg)
-				_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-				if err != nil {
-					fmt.Println(err)
-					return lastId
-				} else {
-					return ev.Id + 1
+			case "change name to":
+				{
+					if strings.Contains(txt, ": ") {
+						return ChangeName(lastId, ev, txt)
+					} else {
+						return SomeMessage(lastId, ev, "Wrong")
+					}
 				}
 			}
-
 		}
 	}
 
 	return lastId
+}
+
+func Anek(lastID int, ev structures.UpdateStruct) int {
+	txtmsg := structures.SendMessage{
+		ChId: ev.Message.Chat.Id,
+		Text: "https://www.youtube.com/watch?v=tvkxupwbFLk&ab_channel=Corpax",
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err := http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+	if err != nil {
+		fmt.Println(err)
+		return lastID
+	} else {
+		return ev.Id + 1
+	}
+}
+
+func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
+	retotal := strings.Split(txt, "до ")[1]
+	s, err := strconv.Atoi(retotal)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(s)
+	num := strconv.Itoa(rand.Intn(s))
+	txtmsg := structures.SendMessage{
+		ChId: ev.Message.Chat.Id,
+		Text: "Сгенерированное число: " + num,
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+
+	if err != nil {
+		fmt.Println(err)
+		return lastID
+	} else {
+		return ev.Id + 1
+	}
+}
+
+func ChangeName(lastId int, ev structures.UpdateStruct, txt string) int {
+	newap := strings.Split(txt, "измени обращение на: ")
+	Bot_Name = newap[1]
+	txtmsg := structures.SendMessage{
+		ChId: ev.Message.Chat.Id,
+		Text: "Обращение изменено на: " + Bot_Name,
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err := http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+
+	if err != nil {
+		fmt.Println(err)
+		return lastId
+	} else {
+		return ev.Id + 1
+	}
+}
+
+func SomeMessage(lastId int, ev structures.UpdateStruct, txt string) int {
+	txtmsg := structures.SendMessage{
+		ChId: ev.Message.Chat.Id,
+		Text: txt,
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err := http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+
+	if err != nil {
+		fmt.Println(err)
+		return lastId
+	} else {
+		return ev.Id + 1
+	}
 }
