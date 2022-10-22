@@ -90,6 +90,7 @@ func Update(lastId int) int {
 			switch strings.Split(strings.Split(txt, ", ")[1], ": ")[0] {
 			case "anekdot":
 				{
+					fmt.Println("worsk")
 					return Anek(lastId, ev)
 				}
 			case "random number":
@@ -99,8 +100,9 @@ func Update(lastId int) int {
 
 			case "change name to":
 				{
+					fmt.Println("worsk")
 					if strings.Contains(txt, ":") {
-						return ChangeName(lastId, ev, txt, &Bot_Name)
+						return ChangeName(lastId, ev, txt)
 
 					} else {
 						return SomeMessage(lastId, ev, "Wrong")
@@ -108,10 +110,12 @@ func Update(lastId int) int {
 				}
 			case "privet":
 				{
+					fmt.Println("worsk")
 					return SomeMessage(lastId, ev, "Hey loser")
 				}
 			case "name":
 				{
+					fmt.Println("worsk")
 					return SayMyName(lastId, ev)
 				}
 			}
@@ -122,7 +126,6 @@ func Update(lastId int) int {
 }
 
 func Anek(lastID int, ev structures.UpdateStruct) int {
-	fmt.Println("works")
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
 		Text: "https://www.youtube.com/watch?v=tvkxupwbFLk&ab_channel=Corpax",
@@ -139,7 +142,6 @@ func Anek(lastID int, ev structures.UpdateStruct) int {
 }
 
 func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
-	fmt.Println("works")
 	retotal := strings.Split(txt, "до ")[1]
 	s, err := strconv.Atoi(retotal)
 	if err != nil {
@@ -163,14 +165,13 @@ func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
 	}
 }
 
-func ChangeName(lastId int, ev structures.UpdateStruct, txt string, Bot_Name *string) int {
-	fmt.Println("works")
+func ChangeName(lastId int, ev structures.UpdateStruct, txt string) int {
 	newap := strings.Split(txt, "change name to:")
-	*Bot_Name = newap[1]
+	Bot_Name = newap[1]
 
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
-		Text: "Обращение изменено на: " + *Bot_Name,
+		Text: "Обращение изменено на: " + Bot_Name,
 	}
 
 	bytemsg, _ := json.Marshal(txtmsg)
@@ -203,7 +204,6 @@ func SomeMessage(lastId int, ev structures.UpdateStruct, txt string) int {
 }
 
 func SayMyName(lastId int, ev structures.UpdateStruct) int {
-	fmt.Println("works")
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
 		Text: Bot_Name,
