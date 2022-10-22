@@ -102,6 +102,10 @@ func Update(lastId int) int {
 						return SomeMessage(lastId, ev, "Wrong")
 					}
 				}
+			case "privet":
+				{
+					return SomeMessage(lastId, ev, "Hey looser")
+				}
 			}
 		}
 	}
