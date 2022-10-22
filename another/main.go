@@ -55,7 +55,6 @@ func IndexHandler(w http.ResponseWriter, _ *http.Request) {
 
 	w.Write([]byte(respReady))
 
-	println("НАШИ ДАННЫЕ ПРОЧИТАНЫ! ПОЛНАЯ ГОТОВНОСТЬ У НАС ГОСТИ!")
 
 	w.Write([]byte("Вывод успешно произведён!"))
 }
@@ -64,7 +63,6 @@ func UpdateLoop() {
 	lastId := 0
 	for {
 		lastId = Update(lastId)
-		// time.Sleep(0 * time.Second)
 	}
 }
 
@@ -88,7 +86,7 @@ func Update(lastId int) int {
 		if txt == "/privet" {
 			txtmsg := structures.SendMessage{
 				ChId:                ev.Message.Chat.Id,
-				Text:                "ИДИ ОТ СЮДА, ЧИТАЙ ОПИСАНИЕ!",
+				Text:                "Hello",
 				Reply_To_Message_Id: ev.Message.Id,
 			}
 
@@ -160,23 +158,6 @@ func Update(lastId int) int {
 				}
 			}
 
-		}
-
-		if txt == "/easter_egg" {
-			txtmsg := structures.SendMessage{
-				ChId:                ev.Message.Chat.Id,
-				Text:                "https://www.youtube.com/watch?v=lIxM2rGKEV4",
-				Reply_To_Message_Id: ev.Message.Id,
-			}
-
-			bytemsg, _ := json.Marshal(txtmsg)
-			_, err = http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
-			if err != nil {
-				fmt.Println(err)
-				return lastId
-			} else {
-				return ev.Id + 1
-			}
 		}
 	}
 
