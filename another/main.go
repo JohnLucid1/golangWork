@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"math/rand"
 
@@ -36,6 +35,7 @@ func main() {
 func IndexHandler(w http.ResponseWriter, _ *http.Request) {
 	var R structures.MainStru
 
+	Ping()
 	resp, err := http.Get(apiUrl + "/getMe")
 
 	if err != nil {
@@ -65,7 +65,6 @@ func UpdateLoop() {
 	lastId := 0
 	for {
 		lastId = Update(lastId)
-		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -87,10 +86,11 @@ func Update(lastId int) int {
 		txt := ev.Message.Text
 
 		if strings.Split(txt, ", ")[0] == Bot_Name {
+
 			switch strings.Split(strings.Split(txt, ", ")[1], ": ")[0] {
 			case "anekdot":
-				{
-					fmt.Println("worsk")
+				{	
+					txt = ""
 					return Anek(lastId, ev)
 				}
 			case "random number":
@@ -100,7 +100,6 @@ func Update(lastId int) int {
 
 			case "change name to":
 				{
-					fmt.Println("worsk")
 					if strings.Contains(txt, ":") {
 						return ChangeName(lastId, ev, txt)
 
@@ -147,7 +146,6 @@ func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(s)
 	num := strconv.Itoa(rand.Intn(s))
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
@@ -219,4 +217,16 @@ func SayMyName(lastId int, ev structures.UpdateStruct) int {
 		return ev.Id + 1
 	}
 
+}
+func Ping() {
+	txtmsg := structures.SendMessage{
+		ChId: 802708579,
+		Text: "Страница посещена",
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err := http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+	if err != nil {
+		fmt.Println(err)
+	}
 }
