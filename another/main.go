@@ -104,7 +104,7 @@ func Update(lastId int) int {
 				}
 			case "privet":
 				{
-					return SomeMessage(lastId, ev, "Hey looser")
+					return SomeMessage(lastId, ev, "Hey loser")
 				}
 			}
 		}
@@ -154,7 +154,7 @@ func RandGen(lastID int, ev structures.UpdateStruct, txt string) int {
 }
 
 func ChangeName(lastId int, ev structures.UpdateStruct, txt string) int {
-	newap := strings.Split(txt, "измени обращение на: ")
+	newap := strings.Split(txt, "change name to: ")
 	Bot_Name = newap[1]
 	txtmsg := structures.SendMessage{
 		ChId: ev.Message.Chat.Id,
