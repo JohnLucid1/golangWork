@@ -2,18 +2,19 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
-	"strings"
-
 	"math/rand"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/another/trying/structures"
 	"github.com/gorilla/mux"
-
-	"strconv"
+	"github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -26,9 +27,18 @@ var (
 )
 
 func main() {
+
+	sql.Register("sqlite3_with_extensions",
+		&sqlite3.SQLiteDriver{
+			Extensions: []string{
+				"sqlite3_mod_regexp",
+			},
+		})
+
 	go UpdateLoop()
 	router := mux.NewRouter()
 	router.HandleFunc("/", IndexHandler)
+	router.HandleFunc("/botName", NameHandler) 
 	http.ListenAndServe("localhost:8080", router)
 }
 
@@ -61,14 +71,50 @@ func IndexHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("Вывод успешно произведён!"))
 }
 
+func NameHandler(w http.ResponseWriter, _ *http.Request) {
+	db, err := sql.Open("sqlite3", "APIBOTSTATUS.sql")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	var gotname string
+	var resp sql.NullString // для результата
+	err = db.QueryRow("SELECT name FROM bot_status").Scan(&resp)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if resp.Valid { // если результат валид
+		gotname = resp.String // берём оттуда обычный string
+	}
+	w.Write([]byte(gotname))
+}
+
 func UpdateLoop() {
+    db, err := sql.Open("sqlite3", "APIBOTSTATUS.sql")
+    if err != nil {
+        panic(err)
+    }
+    
+    defer db.Close()
 	lastId := 0
+    var nickname1 string
+    err = db.QueryRow(`select name from bot_status`).Scan(&nickname1)
+
+    if err != nil {
+        fmt.Println(err)
+    }
+
 	for {
-		lastId = Update(lastId)
+        newId := Update(lastId, &nickname1)
+        if lastId != newId {
+            lastId = newId
+            db.Exec(`update bot_status set lastid = $1`, lastId)
+        }
+        time.Sleep(5 * time.Millisecond)
 	}
 }
 
-func Update(lastId int) int {
+func Update(lastId int, nickname *string) int {
 	raw, err := http.Get(apiUrl + "/getUpdates?offset=" + strconv.Itoa(lastId))
 	if err != nil {
 		panic(err)
@@ -89,7 +135,7 @@ func Update(lastId int) int {
 
 			switch strings.Split(strings.Split(txt, ", ")[1], ": ")[0] {
 			case "anekdot":
-				{	
+				{
 					txt = ""
 					return Anek(lastId, ev)
 				}
@@ -218,6 +264,7 @@ func SayMyName(lastId int, ev structures.UpdateStruct) int {
 	}
 
 }
+
 func Ping() {
 	txtmsg := structures.SendMessage{
 		ChId: 802708579,
